@@ -188,17 +188,24 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
 
 controller.hears(['shutdown'], 'direct_message,direct_mention,mention', function(bot, message) {
 
+    bot.api.reactions.add({
+        timestamp: message.ts,
+        channel: message.channel,
+        name: 'scream_cat',
+    }, function(err, res) {
+        if (err) {
+            bot.botkit.log('Failed to add emoji reaction :(', err);
+        }
+    });
+
     bot.startConversation(message, function(err, convo) {
 
         convo.ask('Are you sure you want me to shutdown?', [
             {
                 pattern: bot.utterances.yes,
                 callback: function(response, convo) {
-                    convo.say('Bye!');
+                    convo.say('I cannot shutdown...');
                     convo.next();
-                    setTimeout(function() {
-                        process.exit();
-                    }, 3000);
                 }
             },
         {
@@ -221,11 +228,42 @@ controller.hears(['uptime', 'identify yourself', 'who are you', 'what is your na
         var uptime = formatUptime(process.uptime());
 
         bot.reply(message,
-            ':robot_face: I am a bot named <@' + bot.identity.name +
+            ':powerpuff: I am a bot named <@' + bot.identity.name +
              '>. I have been running for ' + uptime + ' on ' + hostname + '.');
 
     });
 
+controller.hears(['playtime'], function(bot, message) {
+  bot.startConversation(message, beginStory);
+});
+
+// Custom code here! ****************************************************************
+beginStory = function(response, convo) {
+  convo.ask("Game example text blah blah blah", function(response, convo) {
+
+      convo.ask('Will you continue?', [
+          {
+              pattern: bot.utterances.yes,
+              callback: function(response, convo) {
+                  convo.say('I guess...');
+                  convo.next();
+              }
+          },
+      {
+          pattern: bot.utterances.no,
+          default: true,
+          callback: function(response, convo) {
+              convo.say('Rather rude...');
+              convo.next();
+          }
+      }
+      ]);
+
+  });
+}
+
+
+// **************************************************************************************
 function formatUptime(uptime) {
     var unit = 'second';
     if (uptime > 60) {
